@@ -47,7 +47,7 @@
 
         h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; }
         .stat-box { color: var(--neon-green); font-weight: bold; font-family: 'Orbitron'; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         button {
             background: rgba(0, 242, 255, 0.05);
@@ -72,10 +72,10 @@
         .wrong-choice { border-left-color: var(--neon-red) !important; background: rgba(255, 49, 49, 0.1) !important; }
 
         .feedback-box {
-            padding: 18px; margin: 15px 0; border-radius: 8px; line-height: 1.5; font-size: 0.95rem; border: 1px solid transparent;
+            padding: 18px; margin: 15px 0; border-radius: 8px; line-height: 1.5; font-size: 1rem; border: 2px solid transparent;
         }
-        .correct { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57, 255, 20, 0.05); }
-        .wrong { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 49, 49, 0.05); }
+        .correct { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57, 255, 20, 0.1); }
+        .wrong { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 49, 49, 0.1); }
 
         .analysis-card {
             background: #1c2128; border: 1px solid var(--neon-green); padding: 25px; border-radius: 8px; margin-top: 20px; line-height: 1.8;
@@ -95,7 +95,7 @@
 
     <div id="start-screen">
         <h2>Neural Calibration</h2>
-        <p>Complete the Systems Scan. Correct answers award <strong>500 J</strong> each. Your path (A, B, or C) will be determined by your performance.</p>
+        <p>Complete the Systems Scan. Correct answers award <strong>500 J</strong>. Detailed feedback is provided for every response.</p>
         <button onclick="startScan()">Begin Systems Scan</button>
     </div>
 
@@ -104,7 +104,7 @@
         <p id="q-text" style="font-size: 1.1rem; font-weight: bold;"></p>
         <div id="q-options"></div>
         <div id="diag-feedback" class="feedback-box hidden"></div>
-        <button id="diag-next-btn" class="hidden" onclick="nextDiagnostic()">Continue Analysis</button>
+        <button id="diag-next-btn" class="hidden" onclick="nextDiagnostic()">Acknowledge & Continue</button>
     </div>
 
     <div id="path-module" class="hidden">
@@ -112,13 +112,13 @@
         <p id="path-question-text" style="font-size: 1.1rem;"></p>
         <div id="path-options"></div>
         <div id="path-feedback" class="feedback-box hidden"></div>
-        <button id="path-next-btn" class="hidden" onclick="nextPathQuestion()">Synchronize Data</button>
+        <button id="path-next-btn" class="hidden" onclick="nextPathQuestion()">Synchronize & Proceed</button>
     </div>
 
     <div id="final-boss" class="hidden">
         <h2 style="color: var(--neon-green)">OBJECTIVE: PROJECT ICE-CO</h2>
         <div class="briefing-box" style="background: #000; padding: 20px; border: 1px solid var(--neon-blue); margin: 15px 0; color: #88faff;">
-            <strong>THE CHALLENGE:</strong> Design a container to protect a 2°C vaccine from 50°C Sahara heat. Correct deployment awards <strong>2000 J</strong>.
+            <strong>THE CHALLENGE:</strong> Protect a 2°C vaccine from 50°C heat. Deployment success awards <strong>2000 J</strong>.
         </div>
         <div class="boss-grid" id="boss-options-container"></div>
         <button onclick="checkBoss()" style="width: 100%; margin-top: 20px; font-weight: bold;">DEPLOY SHIELD</button>
@@ -138,39 +138,38 @@
     let pathScore = 0;
     let currentStep = 0;
     let userPath = '';
-    
     let misses = { conduction: 0, convection: 0, radiation: 0 };
 
     const diagnosticQuestions = [
-        { q: "What is true about objects in thermal equilibrium?", a: ["They have the same mass", "No net transfer of thermal energy occurs", "They stop all particle vibration"], correct: 1, type: "conduction", feed: "At equilibrium, temperature is uniform, so energy flows in and out at equal rates (Net Zero)." },
-        { q: "Radiation is the transfer of energy through...", a: ["Elastic collisions", "Electromagnetic waves", "Bulk fluid movement"], correct: 1, type: "radiation", feed: "Radiation does not need particles; it travels as infrared waves which can move through a vacuum." },
-        { q: "Which process is driven by density changes in fluids?", a: ["Convection", "Radiation", "Conduction"], correct: 0, type: "convection", feed: "Heating causes fluids to expand and become less dense, causing them to rise and create currents." },
-        { q: "Delocalized electrons in metals aid which process?", a: ["Radiation", "Convection", "Conduction"], correct: 2, type: "conduction", feed: "Free electrons move rapidly through the metal lattice, transferring kinetic energy much faster than atomic vibration alone." }
+        { q: "What is true about objects in thermal equilibrium?", a: ["They have the same mass", "No net transfer of thermal energy occurs", "They stop all particle vibration"], correct: 1, type: "conduction", feed: "Thermal equilibrium means both objects are at the same temperature, so energy enters and leaves at the same rate—the net flow is zero." },
+        { q: "Radiation is the transfer of energy through...", a: ["Elastic collisions", "Electromagnetic waves", "Bulk fluid movement"], correct: 1, type: "radiation", feed: "Radiation consists of infrared waves. Unlike conduction or convection, it requires no medium and can travel through a vacuum." },
+        { q: "Which process is driven by density changes in fluids?", a: ["Convection", "Radiation", "Conduction"], correct: 0, type: "convection", feed: "Heating a fluid makes it expand and become less dense. This less dense fluid rises, creating a convection current." },
+        { q: "Delocalized electrons in metals aid which process?", a: ["Radiation", "Convection", "Conduction"], correct: 2, type: "conduction", feed: "Free electrons move rapidly through the metal, colliding with other particles to transfer kinetic energy much faster than vibration alone." }
     ];
 
     const pathData = {
         A: {
             title: "Path A: Foundation Forge",
             questions: [
-                { q: "Why is air a poor conductor?", a: ["It has no particles", "Particles are far apart", "It is always cold"], correct: 1, type: "conduction", feed: "Conduction requires particle collisions. In gases, particles are spaced far apart, making collisions rare." },
-                { q: "In which direction does thermal energy move naturally?", a: ["Cold to hot", "Hot to cold", "Large to small"], correct: 1, type: "conduction", feed: "Thermal energy always flows from a region of higher temperature to a region of lower temperature." },
-                { q: "Which material is the best thermal insulator?", a: ["Copper", "Plastic", "Silver"], correct: 1, type: "conduction", feed: "Non-metals like plastic do not have free electrons, making them poor conductors (good insulators)." }
+                { q: "Why is air a poor conductor?", a: ["It has no particles", "Particles are far apart", "It is always cold"], correct: 1, type: "conduction", feed: "Conduction relies on particles bumping into each other. In a gas like air, particles are far apart, so collisions (and energy transfer) are rare." },
+                { q: "In which direction does thermal energy move naturally?", a: ["Cold to hot", "Hot to cold", "Large to small"], correct: 1, type: "conduction", feed: "Heat always flows down a temperature gradient, moving from a higher temperature region to a lower temperature region." },
+                { q: "Which material is a thermal insulator?", a: ["Copper", "Wood", "Silver"], correct: 1, type: "conduction", feed: "Wood is a non-metal without free electrons, making it a poor conductor—also known as an insulator." }
             ]
         },
         B: {
             title: "Path B: Explorer's Circuit",
             questions: [
-                { q: "A sea breeze during the day is caused by...", a: ["Land heating faster than sea", "Sea heating faster than land", "Tidal movements"], correct: 0, type: "convection", feed: "Land has a lower specific heat capacity and heats up faster; the air above it rises, drawing in cool air from the sea." },
-                { q: "Which kettle cools down the slowest?", a: ["Dull Black", "Shiny Silver", "White Porcelain"], correct: 1, type: "radiation", feed: "Shiny silver surfaces are poor emitters of infrared radiation, meaning they retain heat longer." },
-                { q: "Why are saucepans usually made of metal with plastic handles?", a: ["Metal has high density", "Plastic is a poor conductor", "Metal is a good emitter"], correct: 1, type: "conduction", feed: "The metal base conducts heat to the food, while the plastic handle prevents heat from reaching your hand via conduction." }
+                { q: "A sea breeze during the day is caused by...", a: ["Land heating faster than sea", "Sea heating faster than land", "Tidal movements"], correct: 0, type: "convection", feed: "Land heats up faster than water. The air above the land rises (convection), and cool air from the sea moves in to replace it." },
+                { q: "Which surface emits radiation at the slowest rate?", a: ["Dull Black", "Shiny Silver", "White Porcelain"], correct: 1, type: "radiation", feed: "Shiny silver surfaces are poor emitters of infrared radiation, meaning they hold onto their thermal energy longer." },
+                { q: "Why are saucepans usually made of metal?", a: ["To look shiny", "Metals conduct heat quickly", "Metals are poor emitters"], correct: 1, type: "conduction", feed: "Metals have delocalized electrons that transfer thermal energy from the stove to the food very efficiently via conduction." }
             ]
         },
         C: {
             title: "Path C: Specialist's Sector",
             questions: [
-                { q: "How is heat loss minimized in a vacuum flask's double walls?", a: ["By trapping air", "By removing all particles", "By using thicker glass"], correct: 1, type: "conduction", feed: "Removing particles creates a vacuum, which completely eliminates conduction and convection." },
-                { q: "Which surface emits radiation at the highest rate?", a: ["Large surface area, Dull Black", "Small surface area, Shiny Silver", "Large surface area, Shiny Silver"], correct: 0, type: "radiation", feed: "Emission increases with both surface area and 'darkness' (dull black is a perfect emitter)." },
-                { q: "Why is conduction through a vacuum impossible?", a: ["It's too cold", "Requires a medium (particles)", "Electrons cannot travel"], correct: 1, type: "conduction", feed: "Conduction relies on the physical transfer of kinetic energy between adjacent particles; a vacuum has no particles." }
+                { q: "How is heat loss minimized in a vacuum flask's double walls?", a: ["By trapping air", "By removing all particles", "By using thicker glass"], correct: 1, type: "conduction", feed: "By creating a vacuum, you remove the medium required for conduction and convection to occur." },
+                { q: "Which surface property maximizes radiation absorption?", a: ["Large surface area, Dull Black", "Small surface area, Shiny Silver", "Large surface area, Shiny Silver"], correct: 0, type: "radiation", feed: "A dull black surface is the best absorber of radiation, and a larger surface area provides more space for waves to be absorbed." },
+                { q: "Which describes the kinetic particle model of conduction in solids?", a: ["Fluid expansion", "Vibrational energy transfer", "Photonic emission"], correct: 1, type: "conduction", feed: "Conduction in solids occurs when higher-energy particles vibrate more vigorously and pass that kinetic energy to their neighbors." }
             ]
         }
     };
@@ -191,8 +190,10 @@
         document.getElementById('q-title').innerText = `Scan: ${currentStep + 1}/4`;
         document.getElementById('q-text').innerText = q.q;
         const container = document.getElementById('q-options');
-        const feed = document.getElementById('diag-feedback');
-        feed.classList.add('hidden');
+        const feedBox = document.getElementById('diag-feedback');
+        
+        feedBox.classList.add('hidden');
+        document.getElementById('diag-next-btn').classList.add('hidden');
         container.innerHTML = '';
 
         q.a.forEach((text, idx) => {
@@ -202,22 +203,23 @@
             btn.onclick = () => {
                 const buttons = document.querySelectorAll('#q-options button');
                 buttons.forEach(b => b.disabled = true);
-                feed.classList.remove('hidden');
+                
+                feedBox.classList.remove('hidden');
+                document.getElementById('diag-next-btn').classList.remove('hidden');
 
                 if (idx === q.correct) {
                     scanScore++;
                     updateEnergy(500);
                     btn.classList.add('correct-choice');
-                    feed.innerHTML = `<strong>CORRECT:</strong> ${q.feed}`;
-                    feed.className = "feedback-box correct";
+                    feedBox.innerHTML = `<strong>SYNC SUCCESSFUL:</strong> ${q.feed}`;
+                    feedBox.className = "feedback-box correct";
                 } else {
                     misses[q.type]++;
                     btn.classList.add('wrong-choice');
                     buttons[q.correct].classList.add('correct-choice');
-                    feed.innerHTML = `<strong>INCORRECT:</strong> ${q.feed}`;
-                    feed.className = "feedback-box wrong";
+                    feedBox.innerHTML = `<strong>SYNC ERROR:</strong> ${q.feed}`;
+                    feedBox.className = "feedback-box wrong";
                 }
-                document.getElementById('diag-next-btn').classList.remove('hidden');
             };
             container.appendChild(btn);
         });
@@ -226,7 +228,6 @@
     function nextDiagnostic() {
         currentStep++;
         if (currentStep < diagnosticQuestions.length) {
-            document.getElementById('diag-next-btn').classList.add('hidden');
             showDiagnostic();
         } else {
             routePath();
@@ -247,9 +248,11 @@
     function showPathQuestion() {
         const q = pathData[userPath].questions[currentStep];
         document.getElementById('path-question-text').innerText = q.q;
-        const feed = document.getElementById('path-feedback');
-        feed.classList.add('hidden');
-        document.getElementById('path-next-btn').classList.add('hidden');
+        const feedBox = document.getElementById('path-feedback');
+        const nextBtn = document.getElementById('path-next-btn');
+        
+        feedBox.classList.add('hidden');
+        nextBtn.classList.add('hidden');
         const container = document.getElementById('path-options');
         container.innerHTML = '';
 
@@ -260,22 +263,23 @@
             btn.onclick = () => {
                 const buttons = document.querySelectorAll('#path-options button');
                 buttons.forEach(b => b.disabled = true);
-                feed.classList.remove('hidden');
+                
+                feedBox.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
 
                 if (idx === q.correct) {
                     pathScore++;
                     updateEnergy(750);
                     btn.classList.add('correct-choice');
-                    feed.innerHTML = `<strong>CORRECT:</strong> ${q.feed}`;
-                    feed.className = "feedback-box correct";
+                    feedBox.innerHTML = `<strong>ACCESS GRANTED:</strong> ${q.feed}`;
+                    feedBox.className = "feedback-box correct";
                 } else {
                     misses[q.type]++;
                     btn.classList.add('wrong-choice');
                     buttons[q.correct].classList.add('correct-choice');
-                    feed.innerHTML = `<strong>INCORRECT:</strong> ${q.feed}`;
-                    feed.className = "feedback-box wrong";
+                    feedBox.innerHTML = `<strong>DATA LEAK DETECTED:</strong> ${q.feed}`;
+                    feedBox.className = "feedback-box wrong";
                 }
-                document.getElementById('path-next-btn').classList.remove('hidden');
             };
             container.appendChild(btn);
         });
@@ -283,8 +287,9 @@
 
     function nextPathQuestion() {
         currentStep++;
-        if (currentStep < 3) showPathQuestion();
-        else {
+        if (currentStep < 3) {
+            showPathQuestion();
+        } else {
             document.getElementById('path-module').classList.add('hidden');
             setupBoss();
         }
@@ -298,26 +303,29 @@
             { id: "b2", label: "Wall Cavity", options: ["Air", "Vacuum"] },
             { id: "b3", label: "Ground Contact", options: ["Flat Base", "Pointed Legs"] }
         ];
-        grid.innerHTML = opts.map(o => `<div><label style="font-size:0.7rem; color:var(--neon-blue)">${o.label}</label><select id="${o.id}">${o.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div>`).join('');
+        grid.innerHTML = opts.map(o => `<div><label style="font-size:0.75rem; color:var(--neon-blue)">${o.label}</label><select id="${o.id}">${o.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div>`).join('');
     }
 
     function checkBoss() {
         const c1 = document.getElementById('b1').value === "Polished Silver";
         const c2 = document.getElementById('b2').value === "Vacuum";
         const c3 = document.getElementById('b3').value === "Pointed Legs";
+        const feedBox = document.getElementById('boss-feedback');
+        feedBox.classList.remove('hidden');
 
         if (c1 && c2 && c3) {
             updateEnergy(2000);
-            generateDebrief();
+            feedBox.innerHTML = "<strong>SUCCESS:</strong> Shield holding at 2°C. Generating debrief...";
+            feedBox.className = "feedback-box correct";
+            setTimeout(generateDebrief, 2000);
         } else {
-            let errorText = "<strong>FAILURE:</strong> Heat penetration detected. ";
-            if (!c1) errorText += "The dark color is absorbing radiation. ";
-            if (!c2) errorText += "Air in the walls is allowing conduction/convection. ";
-            if (!c3) errorText += "Contact area is too large, increasing conduction from the ground. ";
+            let errorText = "<strong>CRITICAL FAILURE:</strong> ";
+            if (!c1) errorText += "Black casing is absorbing radiation. ";
+            if (!c2) errorText += "Air gap allows conduction and convection. ";
+            if (!c3) errorText += "Flat base allows maximum conduction from the hot ground. ";
             
-            document.getElementById('boss-feedback').innerHTML = errorText;
-            document.getElementById('boss-feedback').className = "feedback-box wrong";
-            document.getElementById('boss-feedback').classList.remove('hidden');
+            feedBox.innerHTML = errorText;
+            feedBox.className = "feedback-box wrong";
         }
     }
 
@@ -330,26 +338,26 @@
         let advice = "";
 
         if (scanScore + pathScore >= 6) {
-            observation = "I notice that you have developed a high-level mastery of thermal processes, particularly in identifying how mediums (or the lack thereof) influence energy flow.";
+            observation = "I notice that you have developed a high-level mastery of thermal processes, particularly in identifying how mediums influence energy flow.";
         } else if (misses.radiation > 1) {
             observation = "I notice that you can identify particle-based transfer, but you struggle with radiation and surface properties.";
         } else {
-            observation = "I notice that while you understand the general concept of heat transfer, you sometimes confuse the specific requirements for conduction versus convection.";
+            observation = "I notice that while you understand general heat transfer, you sometimes confuse the specific requirements for conduction versus convection.";
         }
 
         if (misses.radiation > 0) {
-            advice = "You should revisit the properties of <strong>Shiny vs Dull</strong> surfaces. Remember that shiny surfaces are not just good reflectors, but also very poor emitters of heat.";
+            advice = "You should revisit the properties of <strong>Shiny vs Dull</strong> surfaces. Remember that shiny surfaces are poor emitters AND poor absorbers of radiation.";
         } else if (misses.convection > 0) {
-            advice = "You should revisit <strong>Convection Currents</strong>. Focus on how density changes in fluids allow particles to carry energy from one place to another.";
+            advice = "You should revisit <strong>Convection Currents</strong>. Focus on how density changes in fluids (liquids/gases) drive bulk energy transfer.";
         } else {
-            advice = "You should revisit the <strong>Kinetic Particle Model</strong> to ensure you can explain precisely how vibrating ions and free electrons facilitate conduction in metals.";
+            advice = "You should revisit the <strong>Kinetic Particle Model</strong> to explain how vibrating ions and free electrons facilitate conduction.";
         }
 
         report.innerHTML = `
             <p>${observation}</p>
             <p>${advice}</p>
             <hr style="border:0; border-top:1px solid var(--neon-green); margin:20px 0;">
-            <p style="color:var(--neon-green); font-size: 1.5rem; font-weight:bold; text-align:center;">FINAL ENERGY TOTAL: ${energy} J</p>
+            <p style="color:var(--neon-green); font-size: 1.5rem; font-weight:bold; text-align:center;">TOTAL ENERGY: ${energy} J</p>
         `;
     }
 </script>
