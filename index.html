@@ -26,11 +26,9 @@
             min-height: 100vh;
         }
 
-        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; }
-
         #game-container {
             width: 95%;
-            max-width: 900px;
+            max-width: 850px;
             margin: 20px auto;
             padding: 25px;
             background: var(--panel-bg);
@@ -42,12 +40,12 @@
         .header-ui {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             border-bottom: 1px solid var(--neon-blue);
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
 
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; }
         .stat-box { color: var(--neon-green); font-weight: bold; font-family: 'Orbitron'; }
         .hidden { display: none; }
 
@@ -60,11 +58,10 @@
             cursor: pointer;
             transition: 0.3s;
             margin-top: 10px;
-            text-transform: uppercase;
         }
 
         button:hover:not(:disabled) { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; border-color: #444; color: #444; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .quiz-option {
             display: block;
@@ -74,35 +71,35 @@
             padding: 15px;
             background: #1c2128;
             border-left: 4px solid var(--neon-blue);
+            transition: 0.2s;
         }
 
         .correct-choice { border-left-color: var(--neon-green) !important; background: rgba(57, 255, 20, 0.1) !important; }
         .wrong-choice { border-left-color: var(--neon-red) !important; background: rgba(255, 49, 49, 0.1) !important; }
 
-        input[type="text"] {
-            width: 100%;
-            background: #000;
-            color: var(--neon-green);
-            border: 1px solid var(--neon-blue);
-            padding: 15px;
-            font-family: 'Orbitron', sans-serif;
-            box-sizing: border-box;
-            margin: 10px 0;
-        }
-
         .feedback-box {
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 5px;
-            font-weight: bold;
+            padding: 18px;
+            margin: 15px 0;
+            border-radius: 8px;
+            line-height: 1.5;
+            font-size: 0.95rem;
             border: 1px solid transparent;
         }
         .correct { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57, 255, 20, 0.05); }
         .wrong { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 49, 49, 0.05); }
 
-        .boss-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .boss-control { display: flex; flex-direction: column; }
-        select { background: #000; color: #fff; border: 1px solid var(--neon-blue); padding: 8px; margin-top: 5px; }
+        .briefing-box {
+            background: #000;
+            padding: 15px;
+            border: 1px dashed var(--neon-blue);
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #88faff;
+        }
+
+        .boss-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        select { background: #000; color: #fff; border: 1px solid var(--neon-blue); padding: 10px; width: 100%; }
+        input[type="text"] { width: 100%; background: #000; color: var(--neon-green); border: 1px solid var(--neon-blue); padding: 12px; font-family: 'Orbitron'; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -114,25 +111,25 @@
     </div>
 
     <div id="start-screen">
-        <h2>Neural Link Initialization</h2>
-        <p>Complete the Systems Scan. Your performance will determine your mission clearance level (Path A, B, or C).</p>
-        <button onclick="startScan()">Begin Scan</button>
+        <h2>Neural Calibration</h2>
+        <p>Complete the Systems Scan. Your <strong>first selection</strong> for each question will determine your mission path.</p>
+        <button onclick="startScan()">Begin Systems Scan</button>
     </div>
 
     <div id="diagnostic-quiz" class="hidden">
         <h3 id="q-title">Scanning...</h3>
-        <p id="q-text" style="font-size: 1.1rem;"></p>
+        <p id="q-text" style="font-size: 1.1rem; font-weight: bold;"></p>
         <div id="q-options"></div>
         <div id="diag-feedback" class="feedback-box hidden"></div>
-        <button id="diag-next-btn" class="hidden" onclick="nextDiagnostic()">Next Analysis</button>
+        <button id="diag-next-btn" class="hidden" onclick="nextDiagnostic()">Acknowledge & Continue</button>
     </div>
 
     <div id="content-module" class="hidden">
         <h2 id="path-title">Channelling...</h2>
         <div id="learning-content" style="border-left: 2px solid var(--neon-blue); padding-left: 15px; line-height: 1.6;"></div>
         <div id="gate-area" class="hidden">
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            <h3 style="color: var(--neon-red)">LOCKED GATE</h3>
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            <h3 style="color:var(--neon-red)">LOCKED GATE</h3>
             <p id="gate-text"></p>
             <div id="gate-input-container"></div>
             <div id="gate-feedback" class="feedback-box hidden"></div>
@@ -142,17 +139,23 @@
 
     <div id="final-boss" class="hidden">
         <h2 style="color: var(--neon-green)">FINAL OBJECTIVE: PROJECT ICE-CO</h2>
-        <p>Optimize the transport shield parameters to protect the payload.</p>
-        <div class="boss-grid" id="boss-options-container">
-            </div>
-        <button onclick="checkBoss()" style="width: 100%; margin-top: 20px;">Deploy Shield</button>
+        
+        <div class="briefing-box">
+            <strong>MISSION BRIEF:</strong> You are transporting a temperature-sensitive vaccine across the Thar Desert. 
+            The external temperature is 48°C. If the payload exceeds 5°C, the vaccine denatures. 
+            Your goal is to design a container that **minimizes all three forms of thermal transfer**: 
+            Conduction (through solids), Convection (via air movement), and Radiation (from the sun).
+        </div>
+
+        <div class="boss-grid" id="boss-options-container"></div>
+        <button onclick="checkBoss()" style="width: 100%; margin-top: 20px; font-weight: bold;">ENGAGE THERMAL SHIELD</button>
         <div id="boss-feedback" class="feedback-box hidden"></div>
     </div>
 
     <div id="victory-screen" class="hidden">
         <h1 style="color: var(--neon-green)">MISSION SUCCESS</h1>
         <p id="final-stats"></p>
-        <button onclick="location.reload()">Restart Simulation</button>
+        <button onclick="location.reload()">Return to Base</button>
     </div>
 </div>
 
@@ -163,19 +166,39 @@
     let userPath = '';
 
     const diagnosticQuestions = [
-        { q: "What defines thermal equilibrium between two objects?", a: ["They have the same amount of internal energy", "There is no net flow of thermal energy", "Particles stop moving"], correct: 1, hint: "At equilibrium, temperatures are equal, so net transfer is zero." },
-        { q: "Which process involves the bulk movement of fluid due to density changes?", a: ["Conduction", "Radiation", "Convection"], correct: 2, hint: "Convection relies on hot fluids rising and cold fluids sinking." },
-        { q: "Silver surfaces are used in thermos flasks because they are poor...?", a: ["Reflectors", "Conductors", "Emitters"], correct: 2, hint: "Shiny surfaces are poor emitters (and absorbers), keeping heat inside." },
-        { q: "Thermal radiation travels via which type of wave?", a: ["Sound waves", "Infrared waves", "Water waves"], correct: 1, hint: "Infrared radiation is part of the electromagnetic spectrum." }
+        { 
+            q: "How is thermal equilibrium defined in a closed system?", 
+            a: ["Energy flow stops completely", "There is no net transfer of thermal energy", "The objects have different heat capacities"], 
+            correct: 1, 
+            obj: "Thermal equilibrium occurs when two regions reach the same temperature. While particles still exchange energy at the microscopic level, the overall (NET) transfer is zero."
+        },
+        { 
+            q: "Why do convection currents occur in fluids but not in solids?", 
+            a: ["Solids are too dense", "Particles in solids cannot move from position to position", "Solids do not expand when heated"], 
+            correct: 1, 
+            obj: "Convection requires the 'bulk movement' of particles. In fluids, particles are free to move and carry energy. In solids, particles only vibrate about fixed positions, making bulk movement impossible."
+        },
+        { 
+            q: "Which surface property is most effective at reflecting infrared radiation?", 
+            a: ["Dull Black", "Rough Grey", "Shiny Silver"], 
+            correct: 2, 
+            obj: "Radiation is a wave. Just like a mirror reflects visible light, shiny/smooth silver surfaces reflect infrared waves. Dull/black surfaces absorb these waves, converting them into internal energy."
+        },
+        { 
+            q: "What role do 'delocalized electrons' play in metals?", 
+            a: ["They increase the object's mass", "They collide with ions to transfer energy faster", "They prevent expansion"], 
+            correct: 1, 
+            obj: "In addition to lattice vibrations, metals have free electrons that move rapidly through the structure. These electrons collide with cooler ions far away, transferring kinetic energy much faster than vibration alone."
+        }
     ];
 
     const paths = {
-        A: { title: "Path A: Foundation Forge", content: ["**Conduction:** Energy transfer through particle vibrations. Metals are best due to free electrons.", "**Convection:** Occurs only in fluids. Heat causes expansion, lower density, and rising currents."], 
-             gates: [{ type: "mcq", q: "Why is air a good insulator?", a: ["Particles are far apart", "It is a liquid", "It has free electrons"], correct: 0, hint: "Conduction requires particles to touch; air particles rarely do." }] },
-        B: { title: "Path B: Explorer’s Circuit", content: ["**Radiation:** Transfer via EM waves. No medium needed.", "**Surface Area:** Larger surfaces emit radiation faster than smaller ones at the same temperature."], 
-             gates: [{ type: "mcq", q: "Which surface emits radiation fastest?", a: ["Shiny White", "Dull Black", "Dull Silver"], correct: 1, hint: "Dull black surfaces are the most efficient emitters." }] },
-        C: { title: "Path C: Specialist’s Challenge", content: ["**Vacuum Physics:** A vacuum eliminates conduction and convection entirely, leaving only radiation.", "**STSE:** Greenhouse gases absorb outgoing IR radiation, altering Earth's thermal equilibrium."], 
-             gates: [{ type: "text", q: "What medium is required for radiation to travel?", correct: "none", hint: "Hint: It can travel through a vacuum." }] }
+        A: { title: "Path A: Foundation Forge", content: ["**Conduction:** Energy moves through particle collisions. Solid insulators (like wood) have no free electrons, making them slow conductors.", "**Convection:** In liquids and gases, heated particles spread out, become less dense, and rise."], 
+             gates: [{ type: "mcq", q: "Why is air such a poor conductor of heat?", a: ["Particles are too far apart to collide often", "It is a gas", "It has no mass"], correct: 0, obj: "Conduction relies on particles bumping into neighbors. In gases, the large distances between particles mean collisions are rare, slowing energy transfer significantly." }] },
+        B: { title: "Path B: Explorer’s Circuit", content: ["**Radiation:** Infrared waves move energy without needing any particles.", "**Emission:** Dark, dull surfaces are the best at 'throwing away' heat via radiation."], 
+             gates: [{ type: "mcq", q: "Which of these would keep hot tea warm for the longest time?", a: ["A black ceramic mug", "A shiny silver metal flask"], correct: 1, obj: "A shiny surface is a poor emitter of radiation. This means it prevents the thermal energy inside from escaping as infrared waves into the surroundings." }] },
+        C: { title: "Path C: Specialist’s Challenge", content: ["**The Vacuum Barrier:** By removing all air, we kill conduction and convection, leaving only radiation to manage.", "**Equilibrium Balance:** In space, thermal control is about emissivity (choosing the right color/surface)."], 
+             gates: [{ type: "text", q: "What must be removed from a space to prevent Convection and Conduction entirely?", correct: "particles", obj: "Both conduction and convection require a medium (matter). By creating a vacuum (removing all particles), you force energy to only move via Radiation." }] }
     };
 
     function startScan() {
@@ -186,7 +209,7 @@
 
     function showDiagnostic() {
         const q = diagnosticQuestions[currentStep];
-        document.getElementById('q-title').innerText = `Systems Scan: ${currentStep + 1}/4`;
+        document.getElementById('q-title').innerText = `Systems Scan: Question ${currentStep + 1}/4`;
         document.getElementById('q-text').innerText = q.q;
         document.getElementById('diag-feedback').classList.add('hidden');
         document.getElementById('diag-next-btn').classList.add('hidden');
@@ -198,28 +221,26 @@
             const btn = document.createElement('button');
             btn.className = 'quiz-option';
             btn.innerText = text;
-            btn.onclick = () => handleDiagnosticChoice(idx, btn);
+            btn.onclick = () => handleDiagnosticChoice(idx, q.correct, q.obj);
             optContainer.appendChild(btn);
         });
     }
 
-    function handleDiagnosticChoice(choice, clickedBtn) {
-        const q = diagnosticQuestions[currentStep];
+    function handleDiagnosticChoice(selectedIndex, correctIndex, detailedFeedback) {
         const buttons = document.querySelectorAll('#q-options button');
+        buttons.forEach(btn => btn.disabled = true);
+
         const feed = document.getElementById('diag-feedback');
         
-        // Lock selections
-        buttons.forEach(b => b.disabled = true);
-
-        if (choice === q.correct) {
+        if (selectedIndex === correctIndex) {
             scanScore++;
-            clickedBtn.classList.add('correct-choice');
-            feed.innerText = "ACCURATE. Energy flow confirmed.";
+            buttons[selectedIndex].classList.add('correct-choice');
+            feed.innerHTML = `<strong>STATUS: OPTIMAL.</strong><br>${detailedFeedback}`;
             feed.className = "feedback-box correct";
         } else {
-            clickedBtn.classList.add('wrong-choice');
-            buttons[q.correct].classList.add('correct-choice');
-            feed.innerText = `INACCURATE: ${q.hint}`;
+            buttons[selectedIndex].classList.add('wrong-choice');
+            buttons[correctIndex].classList.add('correct-choice'); 
+            feed.innerHTML = `<strong>STATUS: ERROR.</strong><br><em>Objective:</em> ${detailedFeedback}`;
             feed.className = "feedback-box wrong";
         }
 
@@ -244,7 +265,7 @@
         else if (scanScore <= 3) userPath = 'B';
         else userPath = 'C';
 
-        document.getElementById('path-title').innerText = paths[userPath].title;
+        document.getElementById('path-title').innerText = `PATH ASSIGNED: ${paths[userPath].title}`;
         currentStep = 0;
         showContent();
     }
@@ -261,7 +282,6 @@
         if (currentStep < p.gates.length) {
             showGate();
         } else {
-            // End of path
             document.getElementById('content-module').classList.add('hidden');
             setupBoss();
         }
@@ -282,11 +302,11 @@
                 b.className = 'quiz-option';
                 b.innerText = opt;
                 b.onclick = () => {
+                    const f = document.getElementById('gate-feedback');
                     if (idx === gate.correct) {
                         handleGateSuccess();
                     } else {
-                        const f = document.getElementById('gate-feedback');
-                        f.innerText = `ERROR: ${gate.hint}`;
+                        f.innerHTML = `<strong>ACCESS DENIED.</strong><br>${gate.obj}`;
                         f.className = "feedback-box wrong";
                         f.classList.remove('hidden');
                     }
@@ -296,14 +316,15 @@
         } else {
             const input = document.createElement('input');
             input.type = "text";
-            input.placeholder = "Enter Keyword...";
+            input.placeholder = "Keyword...";
             const sub = document.createElement('button');
-            sub.innerText = "Submit";
+            sub.innerText = "Execute Decryption";
+            sub.style.width = "100%";
             sub.onclick = () => {
+                const f = document.getElementById('gate-feedback');
                 if (input.value.toLowerCase().trim() === gate.correct) handleGateSuccess();
                 else {
-                    const f = document.getElementById('gate-feedback');
-                    f.innerText = `ERROR: ${gate.hint}`;
+                    f.innerHTML = `<strong>DECRYPTION FAILED.</strong><br>${gate.obj}`;
                     f.className = "feedback-box wrong";
                     f.classList.remove('hidden');
                 }
@@ -315,7 +336,7 @@
 
     function handleGateSuccess() {
         const f = document.getElementById('gate-feedback');
-        f.innerText = "GATE UNLOCKED. +1000J Synchronized.";
+        f.innerText = "GATE OPENED. +1000J Energy Harvesting.";
         f.className = "feedback-box correct";
         f.classList.remove('hidden');
         energy += 1000;
@@ -324,39 +345,39 @@
             currentStep++;
             if (currentStep < paths[userPath].content.length) showContent();
             else advancePath();
-        }, 1500);
+        }, 2000);
     }
 
     function setupBoss() {
         document.getElementById('final-boss').classList.remove('hidden');
         const grid = document.getElementById('boss-options-container');
         const opts = [
-            { id: "b1", label: "Casing Color", options: ["Dull Black", "Shiny Silver"] },
-            { id: "b2", label: "Wall Core", options: ["Copper", "Styrofoam"] },
-            { id: "b3", label: "Atmospheric Void", options: ["Air", "Vacuum"] },
-            { id: "b4", label: "Internal Seal", options: ["Loose", "Airtight Gasket"] }
+            { id: "b1", label: "External Finish", options: ["Dull Black", "Mirror-Polished White"], desc: "To minimize Radiation Absorption." },
+            { id: "b2", label: "Internal Core", options: ["Solid Plastic", "Double-Wall Vacuum"], desc: "To stop Conduction/Convection." },
+            { id: "b3", label: "Insulating Gap", options: ["Still Air Foam", "Copper Wool"], desc: "To prevent particle collisions." },
+            { id: "b4", label: "Base Design", options: ["Flat Contact", "Raised Point-Legs"], desc: "To minimize conduction from hot sand." }
         ];
         grid.innerHTML = opts.map(o => `
-            <div class="boss-control">
-                <label style="font-size:0.8rem; color:var(--neon-blue)">${o.label}</label>
+            <div>
+                <label style="font-size:0.7rem; color:var(--neon-blue)">${o.label}</label>
                 <select id="${o.id}">${o.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select>
             </div>
         `).join('');
     }
 
     function checkBoss() {
-        const c1 = document.getElementById('b1').value === "Shiny Silver";
-        const c2 = document.getElementById('b2').value === "Styrofoam";
-        const c3 = document.getElementById('b3').value === "Vacuum";
-        const c4 = document.getElementById('b4').value === "Airtight Gasket";
+        const c1 = document.getElementById('b1').value === "Mirror-Polished White";
+        const c2 = document.getElementById('b2').value === "Double-Wall Vacuum";
+        const c3 = document.getElementById('b3').value === "Still Air Foam";
+        const c4 = document.getElementById('b4').value === "Raised Point-Legs";
 
         const feed = document.getElementById('boss-feedback');
         if (c1 && c2 && c3 && c4) {
             document.getElementById('final-boss').classList.add('hidden');
             document.getElementById('victory-screen').classList.remove('hidden');
-            document.getElementById('final-stats').innerText = `Path Taken: ${userPath} | Final Score: ${energy + (scanScore * 500)} J`;
+            document.getElementById('final-stats').innerText = `Efficiency: 99.8% | Path: ${userPath} | Final Energy: ${energy + (scanScore * 250)} J`;
         } else {
-            feed.innerText = "SHIELD COLLAPSE: Heat detected. Hint: Shiny reflects radiation, Styrofoam stops conduction, Vacuum stops both, Gasket stops convection.";
+            feed.innerHTML = "<strong>CRITICAL FAILURE:</strong> The vaccine temperature is rising! <br><br><strong>ANALYSIS:</strong> Remember, shiny surfaces reflect radiation, a vacuum removes particles to stop conduction/convection, and reducing contact area stops conduction from the ground.";
             feed.className = "feedback-box wrong";
             feed.classList.remove('hidden');
         }
