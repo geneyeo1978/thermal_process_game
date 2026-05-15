@@ -77,11 +77,6 @@
         .correct { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57, 255, 20, 0.05); }
         .wrong { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 49, 49, 0.05); }
 
-        .briefing-box {
-            background: #000; padding: 20px; border: 1px solid var(--neon-blue); margin: 15px 0;
-            font-size: 0.95rem; line-height: 1.6; color: #88faff;
-        }
-
         .analysis-card {
             background: #1c2128; border: 1px solid var(--neon-green); padding: 25px; border-radius: 8px; margin-top: 20px; line-height: 1.8;
         }
@@ -95,12 +90,12 @@
 <div id="game-container">
     <div class="header-ui">
         <div>CORE SYSTEMS: THERMAL CONTROL</div>
-        <div class="stat-box">ENERGY SYNC: <span id="energy-count">0</span>%</div>
+        <div class="stat-box">ENERGY SYNC: <span id="energy-count">0</span> J</div>
     </div>
 
     <div id="start-screen">
         <h2>Neural Calibration</h2>
-        <p>Complete the Systems Scan. Your <strong>first selection</strong> for each question is locked instantly and will determine your mission path (A, B, or C).</p>
+        <p>Complete the Systems Scan. Correct answers award <strong>500 J</strong> each. Your path (A, B, or C) will be determined by your initial diagnostic performance.</p>
         <button onclick="startScan()">Begin Systems Scan</button>
     </div>
 
@@ -122,13 +117,10 @@
 
     <div id="final-boss" class="hidden">
         <h2 style="color: var(--neon-green)">OBJECTIVE: PROJECT ICE-CO</h2>
-        <div class="briefing-box">
+        <div class="briefing-box" style="background: #000; padding: 20px; border: 1px solid var(--neon-blue); margin: 15px 0; color: #88faff;">
             <strong>THE CHALLENGE:</strong> Design a container to protect a 2°C vaccine from 50°C Sahara heat.
             <br><br>
-            <strong>REQUIREMENTS:</strong>
-            - <strong>Conduction:</strong> Block energy transfer through solids (ground/walls).<br>
-            - <strong>Convection:</strong> Stop hot air movement via density cycles.<br>
-            - <strong>Radiation:</strong> Reflect infrared energy from the sun.
+            <strong>MISSION REWARD:</strong> Successful deployment awards <strong>2000 J</strong>.
         </div>
         <div class="boss-grid" id="boss-options-container"></div>
         <button onclick="checkBoss()" style="width: 100%; margin-top: 20px; font-weight: bold;">DEPLOY SHIELD</button>
@@ -143,12 +135,12 @@
 </div>
 
 <script>
+    let energy = 0;
     let scanScore = 0;
     let pathScore = 0;
     let currentStep = 0;
     let userPath = '';
     
-    // Performance Tracking
     let misses = { conduction: 0, convection: 0, radiation: 0 };
 
     const diagnosticQuestions = [
@@ -159,7 +151,7 @@
     ];
 
     const pathData = {
-        A: { // Foundation: Simpler concepts, focus on particle movement
+        A: {
             title: "Path A: Foundation Forge",
             questions: [
                 { q: "Why is air a poor conductor?", a: ["It has no particles", "Particles are far apart", "It is always cold"], correct: 1, type: "conduction" },
@@ -167,7 +159,7 @@
                 { q: "Which material is the best thermal insulator?", a: ["Copper", "Plastic", "Silver"], correct: 1, type: "conduction" }
             ]
         },
-        B: { // Standard: Focus on common applications/scenarios
+        B: {
             title: "Path B: Explorer's Circuit",
             questions: [
                 { q: "A sea breeze during the day is caused by...", a: ["Land heating faster than sea", "Sea heating faster than land", "Tidal movements"], correct: 0, type: "convection" },
@@ -175,7 +167,7 @@
                 { q: "Why are saucepans usually made of metal with plastic handles?", a: ["Metal has high density", "Plastic is a poor conductor", "Metal is a good emitter"], correct: 1, type: "conduction" }
             ]
         },
-        C: { // Specialist: Technical/Advanced scenarios
+        C: {
             title: "Path C: Specialist's Sector",
             questions: [
                 { q: "How is heat loss minimized in a vacuum flask's double walls?", a: ["By trapping air", "By removing all particles", "By using thicker glass"], correct: 1, type: "conduction" },
@@ -184,6 +176,11 @@
             ]
         }
     };
+
+    function updateEnergy(amount) {
+        energy += amount;
+        document.getElementById('energy-count').innerText = energy;
+    }
 
     function startScan() {
         document.getElementById('start-screen').classList.add('hidden');
@@ -203,9 +200,10 @@
             btn.innerText = text;
             btn.onclick = () => {
                 const buttons = document.querySelectorAll('#q-options button');
-                buttons.forEach(b => b.disabled = true); // LOCK FIRST SELECTION
+                buttons.forEach(b => b.disabled = true);
                 if (idx === q.correct) {
                     scanScore++;
+                    updateEnergy(500);
                     btn.classList.add('correct-choice');
                 } else {
                     misses[q.type]++;
@@ -255,6 +253,7 @@
                 buttons.forEach(b => b.disabled = true);
                 if (idx === q.correct) {
                     pathScore++;
+                    updateEnergy(750); // Higher reward for path questions
                     btn.classList.add('correct-choice');
                 } else {
                     misses[q.type]++;
@@ -292,8 +291,10 @@
         const c2 = document.getElementById('b2').value === "Vacuum";
         const c3 = document.getElementById('b3').value === "Pointed Legs";
 
-        if (c1 && c2 && c3) generateDebrief();
-        else {
+        if (c1 && c2 && c3) {
+            updateEnergy(2000); // Big bonus for mission success
+            generateDebrief();
+        } else {
             if (!c1) misses.radiation++;
             if (!c2) { misses.conduction++; misses.convection++; }
             if (!c3) misses.conduction++;
@@ -311,7 +312,6 @@
         let observation = "";
         let advice = "";
 
-        // I notice logic
         if (scanScore + pathScore >= 6) {
             observation = "I notice that you have developed a high-level mastery of thermal processes, particularly in identifying how mediums (or the lack thereof) influence energy flow.";
         } else if (misses.radiation > 1) {
@@ -320,11 +320,10 @@
             observation = "I notice that while you understand the general concept of heat transfer, you sometimes confuse the specific requirements for conduction versus convection.";
         }
 
-        // You should revisit logic
         if (misses.radiation > 0) {
             advice = "You should revisit the properties of <strong>Shiny vs Dull</strong> surfaces. Remember that shiny surfaces are not just good reflectors, but also very poor emitters of heat.";
         } else if (misses.convection > 0) {
-            advice = "You should revisit <strong>Convection Currents</strong>. Focus on how density changes in fluids (liquids/gases) allow particles to carry energy from one place to another.";
+            advice = "You should revisit <strong>Convection Currents</strong>. Focus on how density changes in fluids allow particles to carry energy from one place to another.";
         } else {
             advice = "You should revisit the <strong>Kinetic Particle Model</strong> to ensure you can explain precisely how vibrating ions and free electrons facilitate conduction in metals.";
         }
@@ -333,7 +332,8 @@
             <p>${observation}</p>
             <p>${advice}</p>
             <hr style="border:0; border-top:1px solid var(--neon-green); margin:20px 0;">
-            <p style="color:var(--neon-green); font-weight:bold;">FINAL SYNC: ${scanScore}/4 Diagnostic | ${pathScore}/3 Path Questions Correct.</p>
+            <p style="color:var(--neon-green); font-size: 1.5rem; font-weight:bold; text-align:center;">FINAL ENERGY TOTAL: ${energy} J</p>
+            <p style="text-align:center;">Scan Sync: ${scanScore}/4 | Path Sync: ${pathScore}/3</p>
         `;
     }
 </script>
